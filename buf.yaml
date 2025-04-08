@@ -1,0 +1,4 @@
+version: v1
+name: buf.build/goudini/file-service
+deps:
+  - buf.build/googleapis/googleapis
