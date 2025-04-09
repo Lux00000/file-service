@@ -6,18 +6,23 @@ import (
 	semaphore "file-service/internal/utils"
 )
 
+const count_downloads = 10
+
+// UploadUseCase ...
 type UploadUseCase struct {
 	repo      domain.FileRepository
 	semaphore *semaphore.Semaphore
 }
 
+// NewUploadUseCase ...
 func NewUploadUseCase(repo domain.FileRepository) *UploadUseCase {
 	return &UploadUseCase{
 		repo:      repo,
-		semaphore: semaphore.NewSemaphore(10), // 10 concurrent uploads
+		semaphore: semaphore.NewSemaphore(count_downloads),
 	}
 }
 
+// Upload ...
 func (uc *UploadUseCase) Upload(ctx context.Context, file *domain.File) error {
 	uc.semaphore.Acquire()
 	defer uc.semaphore.Release()

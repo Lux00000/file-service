@@ -6,6 +6,9 @@ import (
 	semaphore "file-service/internal/utils"
 )
 
+const count_list = 100
+
+// ListUseCase ...
 type ListUseCase struct {
 	repo      domain.FileRepository
 	semaphore *semaphore.Semaphore
@@ -14,7 +17,7 @@ type ListUseCase struct {
 func NewListUseCase(repo domain.FileRepository) *ListUseCase {
 	return &ListUseCase{
 		repo:      repo,
-		semaphore: semaphore.NewSemaphore(100), // 100 concurrent list requests
+		semaphore: semaphore.NewSemaphore(count_list),
 	}
 }
 

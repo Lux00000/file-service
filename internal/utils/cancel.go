@@ -2,6 +2,7 @@ package utils
 
 import "context"
 
+// NewWithCancel ...
 func NewWithCancel(parent context.Context) (context.Context, context.CancelFunc) {
 	closeCh := make(chan struct{})
 	doneCh := make(chan struct{})

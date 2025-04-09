@@ -8,15 +8,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// ListController ...
 type ListController struct {
 	useCase *list.ListUseCase
 	proto.UnimplementedFileServiceServer
 }
 
+// NewListController ...
 func NewListController(useCase *list.ListUseCase) *ListController {
 	return &ListController{useCase: useCase}
 }
 
+// ListFiles ...
 func (c *ListController) ListFiles(ctx context.Context, _ *emptypb.Empty) (*proto.ListResponse, error) {
 	files, err := c.useCase.List(ctx)
 	if err != nil {

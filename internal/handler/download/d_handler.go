@@ -6,15 +6,18 @@ import (
 	"file-service/internal/utils"
 )
 
+// DownloadController ...
 type DownloadController struct {
 	useCase *download.DownloadUseCase
 	proto.UnimplementedFileServiceServer
 }
 
+// NewDownloadController ...
 func NewDownloadController(useCase *download.DownloadUseCase) *DownloadController {
 	return &DownloadController{useCase: useCase}
 }
 
+// DownloadFile ...
 func (c *DownloadController) DownloadFile(req *proto.DownloadRequest, stream proto.FileService_DownloadFileServer) error {
 	ctx, cancel := utils.NewWithCancel(stream.Context())
 	defer cancel()
@@ -24,7 +27,7 @@ func (c *DownloadController) DownloadFile(req *proto.DownloadRequest, stream pro
 		return err
 	}
 
-	chunkSize := 64 * 1024 // 64KB chunks
+	chunkSize := 64 * 1024
 	for currentByte := 0; currentByte < len(file.Data); currentByte += chunkSize {
 		end := currentByte + chunkSize
 		if end > len(file.Data) {

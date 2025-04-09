@@ -19,10 +19,8 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 )
 
-// fileServiceServer объединяет все контроллеры в один сервер
 type fileServiceServer struct {
 	proto.UnimplementedFileServiceServer
 	uploadCtrl   *handlup.UploadController
@@ -38,26 +36,24 @@ func newFileServiceServer(uploadCtrl *handlup.UploadController, downloadCtrl *ha
 	}
 }
 
-// Реализация методов FileService
+// UploadFile ...
 func (s *fileServiceServer) UploadFile(stream proto.FileService_UploadFileServer) error {
 	return s.uploadCtrl.UploadFile(stream)
 }
 
+// DownloadFile ...
 func (s *fileServiceServer) DownloadFile(req *proto.DownloadRequest, stream proto.FileService_DownloadFileServer) error {
 	return s.downloadCtrl.DownloadFile(req, stream)
 }
 
+// ListFiles ...
 func (s *fileServiceServer) ListFiles(ctx context.Context, req *emptypb.Empty) (*proto.ListResponse, error) {
 	return s.listCtrl.ListFiles(ctx, req)
 }
 
 func main() {
-	// Choose repository implementation
 	var repo domain.FileRepository
-	storageType := os.Getenv("STORAGE_TYPE")
-	if storageType == "" {
-		storageType = "disk" // default value
-	}
+	storageType := "s3" // "disk" если хотим сохранять локально
 
 	switch storageType {
 	case "s3":
@@ -72,22 +68,18 @@ func main() {
 		log.Fatalf("Unknown storage type: %s", storageType)
 	}
 
-	// Initialize use cases
 	uploadUC := upload.NewUploadUseCase(repo)
 	downloadUC := download.NewDownloadUseCase(repo)
 	listUC := list.NewListUseCase(repo)
 
-	// Initialize controllers
 	uploadCtrl := handlup.NewUploadController(uploadUC)
 	downloadCtrl := handldown.NewDownloadController(downloadUC)
 	listCtrl := handlist.NewListController(listUC)
 
-	// Create combined gRPC server
 	grpcServer := grpc.NewServer()
 	fileServer := newFileServiceServer(uploadCtrl, downloadCtrl, listCtrl)
 	proto.RegisterFileServiceServer(grpcServer, fileServer)
 
-	// Start gRPC server in a goroutine
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
@@ -99,25 +91,20 @@ func main() {
 		}
 	}()
 
-	// Setup gRPC-Gateway
 	ctx := context.Background()
 	mux := runtime.NewServeMux()
 
-	// Serve Swagger UI and static files
 	fs := http.FileServer(http.Dir("./swagger"))
 	http.Handle("/swagger/", http.StripPrefix("/swagger", fs))
 
-	// Register gRPC-Gateway handlers
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	err = proto.RegisterFileServiceHandlerFromEndpoint(ctx, mux, "localhost:50051", opts)
 	if err != nil {
 		log.Fatalf("Failed to register gateway: %v", err)
 	}
 
-	// Combine gRPC-Gateway and static file server
 	http.Handle("/", mux)
 
-	// Start HTTP server for REST/Swagger
 	log.Println("HTTP Server started on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalf("Failed to serve HTTP: %v", err)

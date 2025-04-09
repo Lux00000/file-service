@@ -7,14 +7,17 @@ import (
 	domain "file-service/internal/models"
 )
 
+// DiskRepository ...
 type DiskRepository struct {
 	storagePath string
 }
 
+// NewDiskRepository ...
 func NewDiskRepository(storagePath string) *DiskRepository {
 	return &DiskRepository{storagePath: storagePath}
 }
 
+// Save ...
 func (r *DiskRepository) Save(file *domain.File) error {
 	path := filepath.Join(r.storagePath, file.Name)
 	err := os.WriteFile(path, file.Data, 0644)
@@ -24,6 +27,7 @@ func (r *DiskRepository) Save(file *domain.File) error {
 	return nil
 }
 
+// Get ...
 func (r *DiskRepository) Get(name string) (*domain.File, error) {
 	path := filepath.Join(r.storagePath, name)
 	data, err := os.ReadFile(path)
@@ -44,6 +48,7 @@ func (r *DiskRepository) Get(name string) (*domain.File, error) {
 	}, nil
 }
 
+// List ...
 func (r *DiskRepository) List() ([]*domain.File, error) {
 	entries, err := os.ReadDir(r.storagePath)
 	if err != nil {

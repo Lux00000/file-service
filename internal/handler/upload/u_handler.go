@@ -8,15 +8,18 @@ import (
 	"io"
 )
 
+// UploadController ...
 type UploadController struct {
 	useCase *upload.UploadUseCase
 	proto.UnimplementedFileServiceServer
 }
 
+// NewUploadController ...
 func NewUploadController(useCase *upload.UploadUseCase) *UploadController {
 	return &UploadController{useCase: useCase}
 }
 
+// UploadFile ...
 func (c *UploadController) UploadFile(stream proto.FileService_UploadFileServer) error {
 	ctx, cancel := utils.NewWithCancel(stream.Context())
 	defer cancel()

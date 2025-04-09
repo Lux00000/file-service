@@ -4,6 +4,7 @@ type Semaphore struct {
 	tickets chan struct{}
 }
 
+// NewSemaphore ...
 func NewSemaphore(n int) *Semaphore {
 	return &Semaphore{make(chan struct{}, n)}
 }
