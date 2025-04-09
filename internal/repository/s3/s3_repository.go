@@ -11,18 +11,19 @@ import (
 	"strings"
 )
 
+// S3Repository ...
 type S3Repository struct {
 	client     *minio.Client
 	bucketName string
 }
 
+// NewS3Repository ...
 func NewS3Repository(bucketName string) (*S3Repository, error) {
 	endpoint := os.Getenv("S3_ENDPOINT")
 	accessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	useSSL := false
 
-	// Remove protocol from endpoint if present
 	endpoint = strings.TrimPrefix(endpoint, "http://")
 	endpoint = strings.TrimPrefix(endpoint, "https://")
 
@@ -34,7 +35,6 @@ func NewS3Repository(bucketName string) (*S3Repository, error) {
 		return nil, err
 	}
 
-	// Create bucket if it doesn't exist
 	err = client.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
 	if err != nil {
 		exists, errBucketExists := client.BucketExists(context.Background(), bucketName)
@@ -49,6 +49,7 @@ func NewS3Repository(bucketName string) (*S3Repository, error) {
 	}, nil
 }
 
+// Save ...
 func (r *S3Repository) Save(file *domain.File) error {
 	ctx := context.Background()
 	reader := bytes.NewReader(file.Data)
@@ -62,6 +63,7 @@ func (r *S3Repository) Save(file *domain.File) error {
 	return nil
 }
 
+// Get ...
 func (r *S3Repository) Get(name string) (*domain.File, error) {
 	ctx := context.Background()
 
@@ -89,6 +91,7 @@ func (r *S3Repository) Get(name string) (*domain.File, error) {
 	}, nil
 }
 
+// List ...
 func (r *S3Repository) List() ([]*domain.File, error) {
 	ctx := context.Background()
 	objects := r.client.ListObjects(ctx, r.bucketName, minio.ListObjectsOptions{})
